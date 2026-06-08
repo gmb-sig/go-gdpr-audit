@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: ['1.26.4']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version: ${{ matrix.go-version }}
+        cache: true
+        cache-dependency-path: go.sum
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Verify dependencies
+      run: go mod verify
+
+    - name: Check go mod tidy
+      run: go mod tidy -diff
+
+    - name: Run go vet
+      run: go vet ./...
+
+    - name: Build
+      run: go build ./...
+
+    - name: Run tests
+      run: go test -race -count=1 -coverprofile=coverage.out -covermode=atomic ./...
+
+    - name: Upload coverage artifact
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage-${{ matrix.go-version }}
+        path: coverage.out
+        if-no-files-found: ignore
