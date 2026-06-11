@@ -233,8 +233,18 @@ func (c *Client) buffer(ev *broker.Envelope, cause error) error {
 
 // post delivers one record through the Poster, bounded by cfg.Timeout (the
 // timeout is enforced here, not advisory), and feeds the circuit breaker.
+//
+// The parent context is detached via context.WithoutCancel before the timeout
+// is derived. Two reasons: (1) deriving a cancel-context directly from a
+// pooled fasthttp/azugo request context spawns a stdlib watcher goroutine that
+// can outlive the request and read the context after azugo has reset and
+// reused it — a data race (caught by -race); (2) an audit post, once started,
+// should complete or hit its own timeout rather than be torn down by request
+// cancellation — losing the record because the user disconnected is the wrong
+// outcome for an accountability log. Context values remain available to the
+// Poster; the post is always bounded by cfg.Timeout.
 func (c *Client) post(ctx context.Context, rec *broker.Envelope) error {
-	pctx, cancel := context.WithTimeout(ctx, c.cfg.Timeout)
+	pctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), c.cfg.Timeout)
 	defer cancel()
 
 	err := c.poster.Post(pctx, rec)
@@ -280,8 +290,9 @@ func (c *Client) breakerOpen() bool {
 }
 
 // Drain delivers buffered records until ctx is cancelled. Run it once in a
-// background goroutine: go client.Drain(appCtx); prefer stopping it via Close,
-// which also flushes. Each record is retried with jittered exponential backoff
+// background goroutine with an application-lifetime context —
+// go client.Drain(appCtx) — never a per-request (pooled) context; prefer
+// stopping it via Close, which also flushes. Each record is retried with jittered exponential backoff
 // up to MaxRetries; a record that still cannot be delivered is dead-lettered
 // (when a DeadLetter sink is configured) and dropped with a warning. A second
 // concurrent Drain call is ignored.
