@@ -124,6 +124,9 @@ type Access struct {
 	// Actor is the acting identity, or a service identity for automated access.
 	Actor broker.Actor
 	// DataSubjects are the people the access concerns — drives subject indexing.
+	// Values MUST be pseudonymous internal identity references (e.g. the
+	// identity-record ULID) — NEVER national identifiers, personal codes, names,
+	// or e-mail addresses.
 	DataSubjects []string
 	// Resource is what was touched (document/envelope/identity).
 	Resource broker.Resource
