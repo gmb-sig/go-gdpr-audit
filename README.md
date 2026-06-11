@@ -22,11 +22,25 @@ injected **`Poster`**, with a local **outbox + retry** for graceful degradation.
 | **Routine** reads | `Record`, `DocumentAccessed`, `IdentityRead`, `DSARReceived`, … | **buffered** to the outbox + retried; the call returns `nil` (degrades gracefully) |
 | **Privileged** / elevated | `RecordPrivileged`, `OperatorAccess`, `Export`, `ErasurePurge`, `DSARFulfilled`, `IdentityDeleted` | **fail-closed**: the call returns an error so the operation can abort |
 
-> **The log is itself PII.** The envelope is kept content-free — only identifiers, the
-> operation, and the lawful basis; **never** free-text or document bytes. The client strips
-> free-text/content attribute keys defensively and the publisher strips token-shaped keys.
-> The calling system/tenant is derived by `access-audit` from the authenticated identity,
-> never from the record body.
+Every post is bounded by the configured **timeout (enforced per post)**; drain retries use
+**jittered exponential backoff**; and a **circuit breaker** buffers routine records
+immediately while the sink is slow/failing (privileged posts always attempt). Records that
+cannot be persisted or buffered are handed to the optional **`DeadLetter`** sink before
+being dropped.
+
+> **Back-pressure contract.** On a sustained outage the routine path progresses
+> sync → buffered → buffer-full → **error**. Treat routine-record errors as **non-fatal**
+> for the user operation (log + continue) and alert on the `dropped` outcome of
+> `gdpr_audit_records_total` instead — failing user reads on audit back-pressure inverts
+> the graceful-degradation design.
+
+> **The log is itself PII.** The envelope carries only identifiers, the operation, the
+> lawful basis, and **bounded operational metadata** — never document content or unbounded
+> free text. The client strips content-bearing attribute keys defensively and truncates
+> every string attribute value to `MaxAttrValueLen` (256) runes, which bounds the permitted
+> operational fields (`reason` / `what` / `recipient` — a ticket number, not a narrative);
+> the publisher strips token-shaped keys. The calling system/tenant is derived by
+> `access-audit` from the authenticated identity, never from the record body.
 
 ## Install
 
@@ -37,7 +51,8 @@ go get github.com/gmb-sig/go-gdpr-audit
 ## Usage
 
 Provide a `Poster` (the authenticated synchronous POST — typically over `go-authbyte`),
-construct the client, run `Drain` in the background, and `Flush` on shutdown:
+construct the client with a **durable outbox**, run `Drain` in the background, and call
+`Close` on shutdown (it stops the drainer and flushes, in the right order):
 
 ```go
 import (
@@ -45,11 +60,20 @@ import (
     "github.com/gmb-sig/go-platform-kit/broker"
 )
 
-client, err := gdpr.New(cfg, poster) // cfg bound from the service's configuration
+outbox, err := gdpr.NewFileOutbox("/var/spool/gdpr-audit", 1024) // survives crash/redeploy
 // ...
-go client.Drain(appCtx)              // background delivery of buffered records
-defer client.Flush(shutdownCtx)      // best-effort flush on shutdown
+client, err := gdpr.New(cfg, poster, gdpr.Options{ // cfg bound from the service's configuration
+    Outbox:     outbox,
+    DeadLetter: func(rec *broker.Envelope) { /* persist out-of-band */ },
+    Logger:     logger,
+})
+// ...
+go client.Drain(appCtx)         // background delivery of buffered records
+defer client.Close(shutdownCtx) // stop drainer + flush, atomically ordered
 ```
+
+Without `Options.Outbox` the client falls back to the **non-durable** in-memory buffer and
+logs a warning — fine for dev, not for production.
 
 Record accesses with the typed helpers — the event type, operation, lawful basis and
 fail-policy are set for you:
@@ -133,10 +157,13 @@ Bound as a sub-configuration of the consuming service:
 | `ACCESS_AUDIT_TIMEOUT` | `5s` | Per-post timeout. |
 | `ACCESS_AUDIT_OUTBOX_CAPACITY` | `1024` | Local fallback buffer size. |
 | `ACCESS_AUDIT_MAX_RETRIES` | `5` | Drain retry attempts per buffered record. |
-| `ACCESS_AUDIT_RETRY_BACKOFF` | `500ms` | Initial drain backoff (doubles, capped). |
+| `ACCESS_AUDIT_RETRY_BACKOFF` | `500ms` | Initial drain backoff (doubles, capped, jittered). |
+| `ACCESS_AUDIT_BREAKER_THRESHOLD` | `3` | Consecutive failures that trip the breaker (`0` disables). |
+| `ACCESS_AUDIT_BREAKER_COOLDOWN` | `10s` | How long the breaker stays open before re-probing. |
 
-The default `MemoryOutbox` is per-pod and non-durable; supply a durable `Outbox` via
-`gdpr.Options` where delivery must survive a crash.
+The default `MemoryOutbox` is per-pod and **non-durable**; production services should use
+`gdpr.NewFileOutbox` (shipped, disk-backed, crash-recovering) or a DB-backed `Outbox`, plus
+a `DeadLetter` sink for records dropped after retries.
 
 ## Develop
 

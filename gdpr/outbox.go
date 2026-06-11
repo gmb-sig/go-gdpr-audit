@@ -11,10 +11,11 @@ import (
 var ErrOutboxFull = errors.New("gdpr-audit: outbox is full")
 
 // Outbox is the local fallback buffer for routine access records that could not
-// be posted synchronously. The default MemoryOutbox is per-pod and non-durable;
-// a service that needs delivery to survive a crash can supply a durable
-// implementation (disk/DB-backed) via Options. Implementations must be safe for
-// concurrent Enqueue while a single drainer/flusher consumes via Dequeue.
+// be posted synchronously. The default MemoryOutbox is per-pod and NON-DURABLE
+// — production services should supply the shipped disk-backed FileOutbox (or a
+// DB-backed implementation) via Options, and/or a DeadLetter sink, so buffered
+// records survive a crash/redeploy. Implementations must be safe for concurrent
+// Enqueue while a single drainer/flusher consumes via Dequeue.
 type Outbox interface {
 	// Enqueue buffers rec, returning ErrOutboxFull when at capacity.
 	Enqueue(rec *broker.Envelope) error

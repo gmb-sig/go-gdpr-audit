@@ -62,7 +62,10 @@ const (
 	ResourceIdentity = "identity"
 )
 
-// Attribute keys. Identifiers and metadata only — never free-text or content.
+// Attribute keys. Identifiers and bounded operational metadata only — never
+// document content or unbounded free text. String values are truncated to
+// MaxAttrValueLen runes by the client; AttrReason / AttrWhat / AttrRecipient
+// are short operational references (e.g. a ticket number), not narratives.
 const (
 	AttrChannel           = "channel"
 	AttrRecipient         = "recipient"
