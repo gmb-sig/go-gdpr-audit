@@ -195,7 +195,7 @@ type Operator struct {
 }
 
 // OperatorAccess records elevated operator / break-glass access, flagged
-// elevated. Fail-closed. The same action is also a Regime C security event —
+// elevated. Fail-closed. The same action is also a NIS2-audit security event —
 // emit it via go-sec-events too.
 func (c *Client) OperatorAccess(ctx *azugo.Context, op Operator) error {
 	return c.RecordPrivileged(ctx, EventPrivilegedAccess, Access{

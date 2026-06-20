@@ -51,7 +51,7 @@ const MaxAttrValueLen = 256
 // It must not block for long and must not panic.
 type DeadLetterFunc func(rec *broker.Envelope)
 
-// Client records Regime B personal-data access. Construct one per service with
+// Client records GDPR-audit personal-data access. Construct one per service with
 // New, run Drain in a background goroutine for buffered-record delivery, and
 // call Close on shutdown (it stops the drainer and flushes the outbox in the
 // right order). It is safe for concurrent use.
@@ -442,7 +442,7 @@ func (c *Client) drop(rec *broker.Envelope, reason string, err error) {
 	}
 }
 
-// build assembles a Regime B access envelope from the general parameter set.
+// build assembles a GDPR-audit access envelope from the general parameter set.
 func build(eventType string, a Access) *broker.Envelope {
 	attrs := make(map[string]any, len(a.Attributes)+1)
 	for k, v := range a.Attributes {

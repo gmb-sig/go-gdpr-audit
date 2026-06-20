@@ -1,6 +1,6 @@
 package gdpr
 
-// Event types for Regime B personal-data access events (Audit Design §4, §7).
+// Event types for GDPR-audit personal-data access events (Audit Design §4, §7).
 const (
 	// EventIdentityRead / Created / Updated / Deleted — identity-record access.
 	EventIdentityRead    = "identity.read"

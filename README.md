@@ -1,6 +1,6 @@
 # go-gdpr-audit
 
-The **Regime B** (GDPR personal-data access) audit client for the eSignature Portal. Every
+The **GDPR-audit** (GDPR personal-data access) audit client for the eSignature Portal. Every
 service that touches personal data imports it to record **who accessed whose data, when,
 why, and on what lawful basis** — the log that demonstrates GDPR accountability
 (Art. 5(2)), answers DSARs (Art. 15), and feeds personal-data-breach detection
@@ -14,7 +14,7 @@ take `*azugo.Context` by design (the transport-level `Poster` is stack-agnostic)
 `DataSubjects` values must be **pseudonymous internal identity references**, never national
 identifiers, names, or e-mail addresses.
 
-Unlike the signing-evidence (Regime A) and security (Regime C) streams, GDPR access records
+Unlike the signing-evidence (eIDAS-audit) and security (NIS2-audit) streams, GDPR access records
 must be **durably committed and queryable by subject**, so this is a **synchronous client —
 not the broker**. Each record is the frozen §8.1 `broker.Envelope` tagged `gdpr_access` and
 POSTed synchronously to the `access-audit` service (its own per-system DB) through an
@@ -146,7 +146,7 @@ func (p accessAuditPoster) Post(ctx context.Context, rec *broker.Envelope) error
 | `OperatorAccess` | `access.privileged` | fail-closed |
 | `Record` / `RecordPrivileged` | *(any)* | routine / fail-closed |
 
-A privileged/break-glass access is *also* a Regime C security event — emit it via
+A privileged/break-glass access is *also* a NIS2-audit security event — emit it via
 [`go-sec-events`](https://github.com/gmb-sig/go-sec-events) too. Signing-evidence events go through
 [`go-eidas-audit`](https://github.com/gmb-sig/go-eidas-audit).
 
