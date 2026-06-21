@@ -1,30 +1,29 @@
-// Package gdpr is the Regime B (GDPR personal-data access) audit client for the
-// eSignature Portal. Every service that touches personal data imports it to
+// Package gdpr is the GDPR-audit (GDPR personal-data access) audit client for
+// eIDAS signing services. Every service that touches personal data imports it to
 // record who accessed whose data, when, why, and on what lawful basis — the log
 // that demonstrates GDPR accountability (Art. 5(2)), feeds DSAR responses
 // (Art. 15) and personal-data-breach detection (Art. 33/34), and is itself
-// subject-indexed so it can answer "every access to this person's data" (Audit
-// Design §4, §8; Services Catalog §3.9.8, §3.10).
+// subject-indexed so it can answer "every access to this person's data".
 //
-// Unlike the signing-evidence (Regime A) and security (Regime C) streams, GDPR
+// Unlike the signing-evidence (eIDAS-audit) and security (NIS2-audit) streams, GDPR
 // access records must be durably committed and queryable by subject, so this is
-// a synchronous client — NOT the broker. Each record is the frozen §8.1
+// a synchronous client — NOT the broker. Each record is the frozen
 // broker.Envelope tagged broker.CategoryGDPRAccess and POSTed synchronously to
 // the access-audit service (its own per-system DB) through an injected Poster.
 //
 // # Delivery policy
 //
-//   - Routine reads are posted synchronously (bounded by the configured
-//     Timeout, enforced per post); on a transient access-audit failure they are
-//     buffered to a local Outbox and retried by a background drainer with
-//     jittered backoff, so a brief outage degrades gracefully. A circuit
-//     breaker (BreakerThreshold/BreakerCooldown) protects interactive latency
-//     against a slow-but-up sink by buffering immediately while open.
-//   - Privileged/elevated access (operator break-glass, export, erasure, DSAR
-//     fulfilment) is fail-closed: if the record cannot be persisted, the call
-//     returns an error so the operation can abort — accountability is not
-//     optional for these (RecordPrivileged / the privileged typed helpers).
-//     Privileged posts always attempt delivery, breaker or not.
+// - Routine reads are posted synchronously (bounded by the configured
+// Timeout, enforced per post); on a transient access-audit failure they are
+// buffered to a local Outbox and retried by a background drainer with
+// jittered backoff, so a brief outage degrades gracefully. A circuit
+// breaker (BreakerThreshold/BreakerCooldown) protects interactive latency
+// against a slow-but-up sink by buffering immediately while open.
+// - Privileged/elevated access (operator break-glass, export, erasure, DSAR
+// fulfilment) is fail-closed: if the record cannot be persisted, the call
+// returns an error so the operation can abort — accountability is not
+// optional for these (RecordPrivileged / the privileged typed helpers).
+// Privileged posts always attempt delivery, breaker or not.
 //
 // # Back-pressure contract (read this)
 //

@@ -12,8 +12,8 @@ import (
 	"azugo.io/azugo"
 	"go.uber.org/zap"
 
-	"github.com/gmb-sig/go-platform-kit/broker"
-	"github.com/gmb-sig/go-platform-kit/observability"
+	"github.com/gmb-lib/go-platform-kit/broker"
+	"github.com/gmb-lib/go-platform-kit/observability"
 )
 
 // Errors returned by the client.
@@ -51,7 +51,7 @@ const MaxAttrValueLen = 256
 // It must not block for long and must not panic.
 type DeadLetterFunc func(rec *broker.Envelope)
 
-// Client records Regime B personal-data access. Construct one per service with
+// Client records GDPR-audit personal-data access. Construct one per service with
 // New, run Drain in a background goroutine for buffered-record delivery, and
 // call Close on shutdown (it stops the drainer and flushes the outbox in the
 // right order). It is safe for concurrent use.
@@ -442,7 +442,7 @@ func (c *Client) drop(rec *broker.Envelope, reason string, err error) {
 	}
 }
 
-// build assembles a Regime B access envelope from the general parameter set.
+// build assembles a GDPR-audit access envelope from the general parameter set.
 func build(eventType string, a Access) *broker.Envelope {
 	attrs := make(map[string]any, len(a.Attributes)+1)
 	for k, v := range a.Attributes {
@@ -518,7 +518,7 @@ func opOr(op, def broker.Operation) broker.Operation {
 // forbiddenAttrKeys name attribute payloads that would put document content or
 // unbounded free text into the access log. This log is itself PII — only
 // identifiers, the operation, the basis, and bounded operational metadata
-// belong in it (Audit Design §4).
+// belong in it.
 var forbiddenAttrKeys = []string{
 	"document_bytes", "content_bytes", "file_bytes", "content",
 	"free_text", "note", "comment", "body", "payload", "message",

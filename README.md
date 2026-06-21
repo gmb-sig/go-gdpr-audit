@@ -1,22 +1,19 @@
 # go-gdpr-audit
 
-The **Regime B** (GDPR personal-data access) audit client for the eSignature Portal. Every
+The **GDPR-audit** (GDPR personal-data access) audit client for eIDAS signing services. Every
 service that touches personal data imports it to record **who accessed whose data, when,
 why, and on what lawful basis** — the log that demonstrates GDPR accountability
 (Art. 5(2)), answers DSARs (Art. 15), and feeds personal-data-breach detection
 (Art. 33/34). It is the client half of the reusable **`access-audit`** service.
-
-Design references (§-numbers in doc comments) point to the project's internal *Audit &
-Logging Design* and *Services & Libraries Catalog* documents.
 
 **Scope:** this library targets [Azugo](https://azugo.io) services — its helper entrypoints
 take `*azugo.Context` by design (the transport-level `Poster` is stack-agnostic).
 `DataSubjects` values must be **pseudonymous internal identity references**, never national
 identifiers, names, or e-mail addresses.
 
-Unlike the signing-evidence (Regime A) and security (Regime C) streams, GDPR access records
+Unlike the signing-evidence (eIDAS-audit) and security (NIS2-audit) streams, GDPR access records
 must be **durably committed and queryable by subject**, so this is a **synchronous client —
-not the broker**. Each record is the frozen §8.1 `broker.Envelope` tagged `gdpr_access` and
+not the broker**. Each record is the frozen `broker.Envelope` tagged `gdpr_access` and
 POSTed synchronously to the `access-audit` service (its own per-system DB) through an
 injected **`Poster`**, with a local **outbox + retry** for graceful degradation.
 
@@ -62,7 +59,7 @@ construct the client with a **durable outbox**, run `Drain` in the background, a
 ```go
 import (
     "github.com/gmb-sig/go-gdpr-audit/gdpr"
-    "github.com/gmb-sig/go-platform-kit/broker"
+    "github.com/gmb-lib/go-platform-kit/broker"
 )
 
 outbox, err := gdpr.NewFileOutbox("/var/spool/gdpr-audit", 1024) // survives crash/redeploy
@@ -146,7 +143,7 @@ func (p accessAuditPoster) Post(ctx context.Context, rec *broker.Envelope) error
 | `OperatorAccess` | `access.privileged` | fail-closed |
 | `Record` / `RecordPrivileged` | *(any)* | routine / fail-closed |
 
-A privileged/break-glass access is *also* a Regime C security event — emit it via
+A privileged/break-glass access is *also* a NIS2-audit security event — emit it via
 [`go-sec-events`](https://github.com/gmb-sig/go-sec-events) too. Signing-evidence events go through
 [`go-eidas-audit`](https://github.com/gmb-sig/go-eidas-audit).
 
