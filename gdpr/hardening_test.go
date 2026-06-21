@@ -10,8 +10,8 @@ import (
 	"azugo.io/azugo"
 	"github.com/go-quicktest/qt"
 
+	"github.com/gmb-lib/go-platform-kit/broker"
 	"github.com/gmb-sig/go-gdpr-audit/gdpr"
-	"github.com/gmb-sig/go-platform-kit/broker"
 )
 
 // blockingPoster blocks every Post until its context is cancelled (a hung

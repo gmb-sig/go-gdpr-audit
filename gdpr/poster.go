@@ -3,7 +3,7 @@ package gdpr
 import (
 	"context"
 
-	"github.com/gmb-sig/go-platform-kit/broker"
+	"github.com/gmb-lib/go-platform-kit/broker"
 )
 
 // Poster synchronously delivers one access record to the access-audit service,

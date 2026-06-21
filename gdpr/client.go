@@ -12,8 +12,8 @@ import (
 	"azugo.io/azugo"
 	"go.uber.org/zap"
 
-	"github.com/gmb-sig/go-platform-kit/broker"
-	"github.com/gmb-sig/go-platform-kit/observability"
+	"github.com/gmb-lib/go-platform-kit/broker"
+	"github.com/gmb-lib/go-platform-kit/observability"
 )
 
 // Errors returned by the client.
@@ -518,7 +518,7 @@ func opOr(op, def broker.Operation) broker.Operation {
 // forbiddenAttrKeys name attribute payloads that would put document content or
 // unbounded free text into the access log. This log is itself PII — only
 // identifiers, the operation, the basis, and bounded operational metadata
-// belong in it (Audit Design §4).
+// belong in it.
 var forbiddenAttrKeys = []string{
 	"document_bytes", "content_bytes", "file_bytes", "content",
 	"free_text", "note", "comment", "body", "payload", "message",

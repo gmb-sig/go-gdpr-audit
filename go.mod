@@ -1,3 +1,4 @@
+// Deprecated: moved to github.com/gmb-lib/go-gdpr-audit. Update imports to the new path.
 module github.com/gmb-sig/go-gdpr-audit
 
 go 1.26.4
@@ -5,7 +6,7 @@ go 1.26.4
 require (
 	azugo.io/azugo v0.34.0
 	azugo.io/core v0.34.0
-	github.com/gmb-sig/go-platform-kit v0.11.0
+	github.com/gmb-lib/go-platform-kit v1.0.0
 	github.com/go-quicktest/qt v1.102.0
 	github.com/spf13/viper v1.21.0
 	github.com/valyala/fasthttp v1.71.0

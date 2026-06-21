@@ -3,7 +3,7 @@ package gdpr
 import (
 	"azugo.io/azugo"
 
-	"github.com/gmb-sig/go-platform-kit/broker"
+	"github.com/gmb-lib/go-platform-kit/broker"
 )
 
 // Identity is an identity-record access. LawfulBasis defaults to contract

@@ -1,14 +1,13 @@
-// Package gdpr is the GDPR-audit (GDPR personal-data access) audit client for the
-// eSignature Portal. Every service that touches personal data imports it to
+// Package gdpr is the GDPR-audit (GDPR personal-data access) audit client for
+// eIDAS signing services. Every service that touches personal data imports it to
 // record who accessed whose data, when, why, and on what lawful basis — the log
 // that demonstrates GDPR accountability (Art. 5(2)), feeds DSAR responses
 // (Art. 15) and personal-data-breach detection (Art. 33/34), and is itself
-// subject-indexed so it can answer "every access to this person's data" (Audit
-// Design §4, §8; Services Catalog §3.9.8, §3.10).
+// subject-indexed so it can answer "every access to this person's data".
 //
 // Unlike the signing-evidence (eIDAS-audit) and security (NIS2-audit) streams, GDPR
 // access records must be durably committed and queryable by subject, so this is
-// a synchronous client — NOT the broker. Each record is the frozen §8.1
+// a synchronous client — NOT the broker. Each record is the frozen
 // broker.Envelope tagged broker.CategoryGDPRAccess and POSTed synchronously to
 // the access-audit service (its own per-system DB) through an injected Poster.
 //

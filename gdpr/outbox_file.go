@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gmb-sig/go-platform-kit/broker"
+	"github.com/gmb-lib/go-platform-kit/broker"
 )
 
 // FileOutbox is the shipped durable Outbox: each buffered record is one JSON

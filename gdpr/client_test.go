@@ -11,8 +11,8 @@ import (
 	"github.com/go-quicktest/qt"
 	"github.com/valyala/fasthttp"
 
+	"github.com/gmb-lib/go-platform-kit/broker"
 	"github.com/gmb-sig/go-gdpr-audit/gdpr"
-	"github.com/gmb-sig/go-platform-kit/broker"
 )
 
 // fakePoster is a controllable Poster: it can fail the first failUntil calls (or

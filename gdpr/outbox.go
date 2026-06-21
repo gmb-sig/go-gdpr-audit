@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/gmb-sig/go-platform-kit/broker"
+	"github.com/gmb-lib/go-platform-kit/broker"
 )
 
 // ErrOutboxFull is returned by Enqueue when the buffer is at capacity.
