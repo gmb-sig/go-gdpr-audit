@@ -1,5 +1,11 @@
 # go-gdpr-audit
 
+---
+
+Deprecated: moved to github.com/gmb-lib/go-gdpr-audit. Update imports to the new path.
+
+---
+
 The **GDPR-audit** (GDPR personal-data access) audit client for eIDAS signing services. Every
 service that touches personal data imports it to record **who accessed whose data, when,
 why, and on what lawful basis** — the log that demonstrates GDPR accountability
